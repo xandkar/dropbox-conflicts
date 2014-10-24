@@ -1,0 +1,31 @@
+# vim: filetype=yaml:tabstop=2:softtabstop=2:shiftwidth=2:
+
+OASISFormat : 0.4
+Name        : dropbox-conflicts
+Version     : 0.0.0
+Synopsis    : Dropbox conflicts analyzer
+Authors     : Siraaj Khandkar <siraaj@khandkar.net>
+License     : MIT
+Plugins     : META (0.4)
+            , DevFiles (0.4)
+
+Executable dropbox_conflicts
+  Path           : src/bin
+  BuildTools     : ocamlbuild
+  MainIs         : dropbox_conflicts.ml
+  CompiledObject : native
+  builddepends   : threads
+                 , core
+                 , async
+                 , async_find
+                 , dropbox
+
+Library dropbox
+  Path           : ./src/lib/dropbox
+  FindlibName    : dropbox
+  Install        : false
+  Modules        : Dropbox_conflict
+  BuildTools     : ocamlbuild
+  CompiledObject : native
+  builddepends   : threads
+                 , core

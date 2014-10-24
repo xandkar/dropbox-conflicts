@@ -1,0 +1,15 @@
+# Whole directories
+_build/
+data/
+tmp/
+
+# Files
+_tags
+configure
+dropbox_conflicts.native
+setup.data
+setup.log
+setup.ml
+src/lib/dropbox/META
+src/lib/dropbox/dropbox.mldylib
+src/lib/dropbox/dropbox.mllib
