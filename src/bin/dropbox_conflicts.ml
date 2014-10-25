@@ -18,7 +18,7 @@ let () =
   let open Command.Spec in
   let (+) = (+>) in
   Command.run (Command.async_basic
-    ~summary:"USAGE EXAMPLE: ./dropbox_conflicts.native -dir `pwd`/Dropbox \
+    ~summary:"USAGE EXAMPLE: ./dropbox_conflicts.native -dir $HOME/Dropbox \
               | neato -T png > conflicts.png && open conflicts.png"
     ( empty
     + flag "-dir" (required string) ~doc:" Directory to search for conflicts"
