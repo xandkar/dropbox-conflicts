@@ -14,7 +14,7 @@
  *  you'll need to continuously re-scan the resulting "path_original" from the
  *  previous scan, until no more conflict markers are found.
  *
- *  So far. I could not think of a nicer way to parse these, because the grammar
+ *  So far, I could not think of a nicer way to parse these, because the grammar
  *  is context-sensitive.
  *)
 {
