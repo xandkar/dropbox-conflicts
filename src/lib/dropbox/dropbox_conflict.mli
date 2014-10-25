@@ -8,4 +8,4 @@ type t =
   ; sequence      : int option
   }
 
-val find : path:string -> t option
+val find : path:string -> t list

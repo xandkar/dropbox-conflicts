@@ -8,13 +8,16 @@ type t =
   ; sequence      : int option
   }
 
-let find ~path:path_current =
-  Option.map (Dropbox_conflict_lexer.find ~path:path_current) ~f:(
-    fun {Dropbox_conflict_info.path_original; host; date; sequence} ->
-      { path_current
-      ; path_original
-      ; host
-      ; date
-      ; sequence
-      }
-  )
+let rec find ~path:path_current =
+  match Dropbox_conflict_lexer.find ~path:path_current with
+  | None -> []
+  | Some {Dropbox_conflict_info.path_original; host; date; sequence} ->
+      let conflict =
+        { path_current
+        ; path_original
+        ; host
+        ; date
+        ; sequence
+        }
+      in
+      conflict :: find ~path:path_original
