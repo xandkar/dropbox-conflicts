@@ -49,6 +49,9 @@ let main ~dir =
   let conflicts_r , conflicts_w = Pipe.create () in
   let worker_finder () =
     let finder = Async_find.create dir in
+    (* TODO: Handle Unix exceptions (such as:
+     * Unix.Unix_error "No such file or directory")
+     * *)
     Async_find.iter finder ~f:(fun (path, _stats) ->
       Pipe.write_without_pushback paths_w path;
       return ()
