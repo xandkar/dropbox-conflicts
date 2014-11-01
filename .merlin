@@ -1,0 +1,7 @@
+PKG core async async_find dropbox
+
+S src/bin
+S src/lib/dropbox
+
+B _build/src/bin
+B _build/src/lib/dropbox
