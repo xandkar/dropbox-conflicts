@@ -10,6 +10,8 @@ module DiGraph : sig
 
   val add_link : t -> src:node_id -> dst:node_id -> unit
 
+  val print_paths : t -> unit
+
   val print_dot : t -> unit
 end = struct
   type node_id = string
@@ -36,6 +38,28 @@ end = struct
     Hash_set.add (get_links src).outgoing dst;
     Hash_set.add (get_links dst).incoming src
 
+  let roots t =
+    Hashtbl.fold t ~init:[] ~f:(fun ~key:node_id ~data:{incoming; _} roots ->
+      if (Hash_set.is_empty incoming) then
+        node_id :: roots
+      else
+        roots
+    )
+
+  let print_paths t =
+    let indent_unit = "        " in
+    let indent_succ indent = indent ^ indent_unit in
+    let print item ~indent = printf "%s%s\n" indent item in
+    let rec print_path ~indent node_id =
+      print ~indent node_id;
+      let {outgoing; _} = Hashtbl.find_exn t node_id in
+      Hash_set.iter outgoing ~f:(print_path ~indent:(indent_succ indent));
+    in
+    List.iter (roots t) ~f:(fun node_id ->
+      print_path node_id ~indent:"";
+      print_newline ()
+    )
+
   let print_dot t =
     print_endline "digraph G {";
     Hashtbl.iter t ~f:(fun ~key:src ~data:{outgoing=dsts; _} ->
@@ -44,7 +68,7 @@ end = struct
     print_endline "}"
 end
 
-let main ~dir =
+let main ~dir ~output =
   let paths_r     , paths_w     = Pipe.create () in
   let conflicts_r , conflicts_w = Pipe.create () in
   let worker_finder () =
@@ -76,7 +100,9 @@ let main ~dir =
         DiGraph.add_link graph ~src ~dst;
         return ()
     ) >>| fun () ->
-    DiGraph.print_dot graph
+    match output with
+    | `Dot   -> DiGraph.print_dot   graph
+    | `Trees -> DiGraph.print_paths graph
   in
   Deferred.List.iter
     ~how:`Parallel
@@ -94,6 +120,15 @@ let () =
               | neato -T png > conflicts.png && open conflicts.png"
     ( empty
     + flag "-dir" (required string) ~doc:" Directory to search for conflicts"
+    + flag "-output" (required string) ~doc:"  Desired output: [dot | trees]"
     )
-    (fun dir () -> main ~dir)
+    ( fun dir output () ->
+        let output =
+          match output with
+          | "dot"   -> `Dot
+          | "trees" -> `Trees
+          | unknown -> failwith (sprintf "Unknown output format: %s\n" unknown)
+        in
+        main ~dir ~output
+    )
   )
