@@ -1,4 +1,4 @@
-PKG core async async_find dropbox
+PKG core async async_find
 
 S src/bin
 S src/lib/dropbox
