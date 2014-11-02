@@ -40,7 +40,7 @@ end = struct
 
   let roots t =
     Hashtbl.fold t ~init:[] ~f:(fun ~key:node_id ~data:{incoming; _} roots ->
-      if (Hash_set.is_empty incoming) then
+      if Hash_set.is_empty incoming then
         node_id :: roots
       else
         roots
