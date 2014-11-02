@@ -116,14 +116,14 @@ let () =
   let open Command.Spec in
   let (+) = (+>) in
   Command.run (Command.async_basic
-    ~summary:"USAGE EXAMPLE: ./dropbox_conflicts.native -dir $HOME/Dropbox \
+    ~summary:"Example: dropbox_conflicts -output dot $HOME/Dropbox \
               | neato -T png > conflicts.png && open conflicts.png"
     ( empty
-    + flag "-dir" (required string) ~doc:" Directory to search for conflicts"
     + flag "-output" (optional_with_default "trees" string)
         ~doc:"  Desired output: [dot | trees]"
+    + anon ("DIRECTORY" %: string)
     )
-    ( fun dir output () ->
+    ( fun output dir () ->
         let output =
           match output with
           | "dot"   -> `Dot
