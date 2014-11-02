@@ -120,7 +120,8 @@ let () =
               | neato -T png > conflicts.png && open conflicts.png"
     ( empty
     + flag "-dir" (required string) ~doc:" Directory to search for conflicts"
-    + flag "-output" (required string) ~doc:"  Desired output: [dot | trees]"
+    + flag "-output" (optional_with_default "trees" string)
+        ~doc:"  Desired output: [dot | trees]"
     )
     ( fun dir output () ->
         let output =
