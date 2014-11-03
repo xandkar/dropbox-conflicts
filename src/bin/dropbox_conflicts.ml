@@ -72,16 +72,20 @@ let main ~dir ~output =
   let paths_r     , paths_w     = Pipe.create () in
   let conflicts_r , conflicts_w = Pipe.create () in
   let worker_finder () =
-    let finder = Async_find.create dir in
     (* TODO: Handle Unix exceptions (such as:
      * Unix.Unix_error "No such file or directory")
      * *)
-    Async_find.iter finder ~f:(fun (path, _stats) ->
-      Pipe.write_without_pushback paths_w path;
-      return ()
-    ) >>= fun () ->
+    Deferred.Or_error.ok_exn (
+      Process.create
+        ~prog:"find"
+        ~args:[dir; "-name"; "*conflicted copy*"]
+        ()
+    )
+    >>= fun find_proc ->
+    let stdout_r = Reader.lines (Process.stdout find_proc) in
+    Pipe.transfer_id stdout_r paths_w >>= fun () ->
     Pipe.close paths_w;
-    Async_find.close finder
+    Unix.waitpid_exn (Process.pid find_proc)
   in
   let worker_parser () =
     Pipe.iter paths_r ~f:(fun path ->
@@ -104,6 +108,7 @@ let main ~dir ~output =
     | `Dot   -> DiGraph.print_dot   graph
     | `Trees -> DiGraph.print_paths graph
   in
+  (* TODO: Workers should return Or_error.t *)
   Deferred.List.iter
     ~how:`Parallel
     ~f:(fun w -> w ())

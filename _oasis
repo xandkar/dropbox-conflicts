@@ -17,7 +17,6 @@ Executable dropbox_conflicts
   builddepends   : threads
                  , core
                  , async
-                 , async_find
                  , dropbox
 
 Library dropbox
