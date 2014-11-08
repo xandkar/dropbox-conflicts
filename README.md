@@ -1,7 +1,16 @@
-Build a tree of Dropbox conflict dependencies:
+Build a tree of Dropbox conflict dependencies.
+
+As DOT, for feeding graphviz:
 
 ```
-$ dropbox_conflicts ~/Dropbox
+$ dropbox_conflicts -output dot ~/Dropbox | neato -T png > conflicts.png && open conflicts.png
+```
+
+or as textual, indented trees, for feeding some other arbitrary tool or just
+visual inspection:
+
+```
+$ dropbox_conflicts -output trees ~/Dropbox
 /home/ibnfirnas/Dropbox/Documents/broolstoryco.txt
         /home/ibnfirnas/Dropbox/Documents/broolstoryco (huayra's conflicted copy 2014-10-22).txt
 
