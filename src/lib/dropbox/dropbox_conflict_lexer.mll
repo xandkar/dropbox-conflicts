@@ -64,7 +64,6 @@ rule scan = parse
   in
   Buffer.clear orig_path_left_buf;
   Some conflict_info
-
 }
 | (_ as c) {
   Buffer.add_char orig_path_left_buf c;
