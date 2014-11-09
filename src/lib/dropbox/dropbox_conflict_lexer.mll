@@ -54,9 +54,19 @@ rule scan = parse
    * invalid dates? Maybe we should just keep the integers without converting
    * to Date.t? *)
   let date = Date.create_exn ~y ~m ~d in
+  let path_original =
+    match sequence with
+    | None   ->
+        orig_path_left ^ orig_path_right
+    | Some _ ->
+        let current_conflict_marker =
+          sprintf " (%s's conflicted copy %s-%s-%s)" host year month day
+        in
+        orig_path_left ^ current_conflict_marker  ^ orig_path_right
+  in
   let conflict_info =
     let open Dropbox_conflict_info in
-    { path_original = orig_path_left ^ orig_path_right
+    { path_original
     ; host
     ; date
     ; sequence
