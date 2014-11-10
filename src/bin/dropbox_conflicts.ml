@@ -68,24 +68,31 @@ end = struct
     print_endline "}"
 end
 
-let main ~dir ~output =
+let main ~input ~output =
   let paths_r     , paths_w     = Pipe.create () in
   let conflicts_r , conflicts_w = Pipe.create () in
   let worker_finder () =
     (* TODO: Handle Unix exceptions (such as:
      * Unix.Unix_error "No such file or directory")
      * *)
-    Deferred.Or_error.ok_exn (
-      Process.create
-        ~prog:"find"
-        ~args:[dir; "-name"; "*conflicted copy*"]
-        ()
+    ( match input with
+    | `Stdin ->
+        return (Lazy.force Reader.stdin, fun () -> return ())
+    | `Directory dir -> (
+        Deferred.Or_error.ok_exn (
+          Process.create
+            ~prog:"find"
+            ~args:[dir; "-name"; "*conflicted copy*"]
+            ()
+        )
+        >>| fun proc ->
+        (Process.stdout proc, fun () -> Unix.waitpid_exn (Process.pid proc))
+      )
     )
-    >>= fun find_proc ->
-    let stdout_r = Reader.lines (Process.stdout find_proc) in
-    Pipe.transfer_id stdout_r paths_w >>= fun () ->
+    >>= fun (paths_found_r, finder_close) ->
+    Pipe.transfer_id (Reader.lines paths_found_r) paths_w >>= fun () ->
     Pipe.close paths_w;
-    Unix.waitpid_exn (Process.pid find_proc)
+    finder_close ()
   in
   let worker_parser () =
     Pipe.iter paths_r ~f:(fun path ->
@@ -126,15 +133,20 @@ let () =
     ( empty
     + flag "-output" (optional_with_default "trees" string)
         ~doc:"  Desired output: [dot | trees]"
-    + anon ("DIRECTORY" %: string)
+    + anon (maybe ("DIRECTORY" %: string))
     )
     ( fun output dir () ->
+        let input =
+          match dir with
+          | None     -> `Stdin
+          | Some dir -> `Directory dir
+        in
         let output =
           match output with
           | "dot"   -> `Dot
           | "trees" -> `Trees
           | unknown -> failwith (sprintf "Unknown output format: %s\n" unknown)
         in
-        main ~dir ~output
+        main ~input ~output
     )
   )
