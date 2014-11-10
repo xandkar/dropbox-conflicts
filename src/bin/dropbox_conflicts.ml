@@ -10,7 +10,7 @@ module DiGraph : sig
 
   val add_link : t -> src:node_id -> dst:node_id -> unit
 
-  val print_paths : t -> unit
+  val print_paths : t -> indent_unit:string -> unit
 
   val print_dot : t -> unit
 end = struct
@@ -46,8 +46,7 @@ end = struct
         roots
     )
 
-  let print_paths t =
-    let indent_unit = "        " in
+  let print_paths t ~indent_unit =
     let indent_succ indent = indent ^ indent_unit in
     let print item ~indent = printf "%s%s\n" indent item in
     let rec print_path ~indent node_id =
@@ -68,7 +67,7 @@ end = struct
     print_endline "}"
 end
 
-let main ~input ~output =
+let main ~indent_unit ~input ~output =
   let paths_r     , paths_w     = Pipe.create () in
   let conflicts_r , conflicts_w = Pipe.create () in
   let worker_finder () =
@@ -113,7 +112,7 @@ let main ~input ~output =
     ) >>| fun () ->
     match output with
     | `Dot   -> DiGraph.print_dot   graph
-    | `Trees -> DiGraph.print_paths graph
+    | `Trees -> DiGraph.print_paths graph ~indent_unit
   in
   (* TODO: Workers should return Or_error.t *)
   Deferred.List.iter
@@ -131,11 +130,13 @@ let () =
     ~summary:"Example: dropbox_conflicts -output dot $HOME/Dropbox \
               | neato -T png > conflicts.png && open conflicts.png"
     ( empty
+    + flag "-indent-unit" (optional_with_default "        " string)
+        ~doc:"  Indent unit. Default: 8 spaces."
     + flag "-output" (optional_with_default "trees" string)
         ~doc:"  Desired output: [dot | trees]"
     + anon (maybe ("DIRECTORY" %: string))
     )
-    ( fun output dir () ->
+    ( fun indent_unit output dir () ->
         let input =
           match dir with
           | None     -> `Stdin
@@ -147,6 +148,6 @@ let () =
           | "trees" -> `Trees
           | unknown -> failwith (sprintf "Unknown output format: %s\n" unknown)
         in
-        main ~input ~output
+        main ~indent_unit ~input ~output
     )
   )
